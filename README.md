@@ -1,6 +1,10 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Mentoria Residência Afya — Plataforma Interna
 
-## Getting Started
+Plataforma interna de inteligência operacional para a Mentoria Residência da Afya.
+
+> **Este sistema NÃO é um CRM.** É uma plataforma interna para a equipe acompanhar a jornada acadêmica e operacional de cada aluno que se prepara para provas de residência médica.
+
+## Executar
 
 First, run the development server:
 
