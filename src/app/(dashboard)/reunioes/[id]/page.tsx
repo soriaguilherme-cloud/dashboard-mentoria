@@ -1,6 +1,6 @@
 'use client'
 
-import { use } from 'react'
+import { use, useState, useEffect } from 'react'
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
 import { mockMeetings, mockMedicalRecords } from '@/lib/mock-data'
@@ -19,6 +19,16 @@ export default function ReuniaoPage({ params }: { params: Promise<{ id: string }
   if (!meeting) notFound()
 
   const record = mockMedicalRecords.find(r => r.meeting_id === id)
+
+  const defaultTab = record ? 'prontuario' : 'detalhes'
+  const [activeTab, setActiveTab] = useState(defaultTab)
+
+  useEffect(() => {
+    const tab = new URLSearchParams(window.location.search).get('tab')
+    if (tab === 'prontuario' || tab === 'detalhes' || tab === 'transcricao') {
+      setActiveTab(tab)
+    }
+  }, [])
 
   return (
     <div className="space-y-6">
@@ -69,7 +79,7 @@ export default function ReuniaoPage({ params }: { params: Promise<{ id: string }
         </div>
       </div>
 
-      <Tabs defaultValue={record ? 'prontuario' : 'detalhes'}>
+      <Tabs value={activeTab} onValueChange={setActiveTab}>
         <TabsList>
           <TabsTrigger value="detalhes">Detalhes</TabsTrigger>
           <TabsTrigger value="prontuario">

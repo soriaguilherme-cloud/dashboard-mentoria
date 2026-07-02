@@ -1,9 +1,9 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { Suspense, useState, useEffect } from 'react'
 import { useSearchParams } from 'next/navigation'
 import Link from 'next/link'
-import { mockStudents, mockProfiles, mockPrepCourses } from '@/lib/mock-data'
+import { mockStudents, mockProfiles } from '@/lib/mock-data'
 import { Student } from '@/types/database'
 import { PageHeader } from '@/components/shared/page-header'
 import { StudentStatusBadge, ActivityBadge, RiskScore, StudyPhaseBadge } from '@/components/shared/status-badge'
@@ -13,13 +13,19 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Card, CardContent } from '@/components/ui/card'
 import { format } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
-import { Search, UserPlus, Calendar, Clock, AlertTriangle, Eye, Filter, X } from 'lucide-react'
+import { Search, UserPlus, Calendar, Clock, AlertTriangle, Eye, X } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
 type StatusFilter = 'todos' | 'ativo' | 'inativo' | 'critico'
 type MeetingFilter = 'todos' | 'sem_reuniao' | 'atrasados'
 
-export default function AlunosPage() {
+// date-only strings like '2025-06-20' parse as UTC midnight, causing off-by-one
+// in UTC-3 timezones. Force noon local time to prevent timezone shift.
+function parseLocalDate(dateStr: string) {
+  return new Date(dateStr + 'T12:00:00')
+}
+
+function AlunosPageInner() {
   const searchParams = useSearchParams()
   const filtroParam = searchParams.get('filtro') as MeetingFilter | null
 
@@ -167,7 +173,7 @@ export default function AlunosPage() {
                   </tr>
                 ) : (
                   filtered.map((student) => (
-                    <StudentRow key={student.id} student={student} />
+                    <StudentRow key={student.id} student={student} parseDate={parseLocalDate} />
                   ))
                 )}
               </tbody>
@@ -179,7 +185,15 @@ export default function AlunosPage() {
   )
 }
 
-function StudentRow({ student }: { student: Student }) {
+export default function AlunosPage() {
+  return (
+    <Suspense fallback={null}>
+      <AlunosPageInner />
+    </Suspense>
+  )
+}
+
+function StudentRow({ student, parseDate }: { student: Student; parseDate: (s: string) => Date }) {
   const isDelayed = (student.days_since_last_meeting ?? 0) > 21
   const noNextMeeting = !student.next_meeting_at
 
@@ -215,7 +229,7 @@ function StudentRow({ student }: { student: Student }) {
         {student.last_meeting_at ? (
           <div className={cn('flex items-center gap-1.5 text-xs', isDelayed ? 'text-yellow-700' : 'text-muted-foreground')}>
             <Clock className="h-3.5 w-3.5" />
-            {format(new Date(student.last_meeting_at), "dd/MM/yy", { locale: ptBR })}
+            {format(parseDate(student.last_meeting_at), "dd/MM/yy", { locale: ptBR })}
             {isDelayed && <AlertTriangle className="h-3 w-3" />}
           </div>
         ) : (
@@ -226,7 +240,7 @@ function StudentRow({ student }: { student: Student }) {
         {student.next_meeting_at ? (
           <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
             <Calendar className="h-3.5 w-3.5" />
-            {format(new Date(student.next_meeting_at), "dd/MM/yy", { locale: ptBR })}
+            {format(parseDate(student.next_meeting_at), "dd/MM/yy", { locale: ptBR })}
           </div>
         ) : (
           <span className="flex items-center gap-1 text-xs text-red-500 font-medium">

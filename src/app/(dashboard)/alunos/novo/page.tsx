@@ -1,7 +1,8 @@
 'use client'
 
+import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { useForm } from 'react-hook-form'
+import { useForm, Controller } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { mockProfiles, mockPrepCourses } from '@/lib/mock-data'
@@ -11,7 +12,8 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { ChevronLeft, Save } from 'lucide-react'
+import { ChevronLeft, Save, CheckCircle2 } from 'lucide-react'
+import { useState } from 'react'
 
 const studentSchema = z.object({
   name: z.string().min(3, 'Nome deve ter ao menos 3 caracteres'),
@@ -25,22 +27,40 @@ const studentSchema = z.object({
   prep_course_id: z.string().optional(),
   mentor_id: z.string().optional(),
   orientador_id: z.string().optional(),
+  supervisor_id: z.string().optional(),
 })
 
 type StudentForm = z.infer<typeof studentSchema>
 
 export default function NovoAlunoPage() {
-  const { register, handleSubmit, formState: { errors } } = useForm<StudentForm>({
+  const router = useRouter()
+  const [success, setSuccess] = useState(false)
+
+  const { register, handleSubmit, control, formState: { errors } } = useForm<StudentForm>({
     resolver: zodResolver(studentSchema),
     defaultValues: { status: 'ativo', study_phase: 'construcao' }
   })
 
   const mentors = mockProfiles.filter(p => p.role === 'mentor')
   const orientadores = mockProfiles.filter(p => p.role === 'orientador')
+  const supervisores = mockProfiles.filter(p => p.role === 'supervisor')
 
-  const onSubmit = (data: StudentForm) => {
-    console.log('Novo aluno:', data)
-    alert('Aluno cadastrado com sucesso! (Integração com Supabase necessária para persistência)')
+  const onSubmit = (_data: StudentForm) => {
+    // TODO: persist via Supabase
+    setSuccess(true)
+    setTimeout(() => router.push('/alunos'), 1500)
+  }
+
+  if (success) {
+    return (
+      <div className="flex flex-col items-center justify-center py-24 gap-4">
+        <div className="flex h-16 w-16 items-center justify-center rounded-full bg-emerald-100">
+          <CheckCircle2 className="h-8 w-8 text-emerald-600" />
+        </div>
+        <p className="text-lg font-semibold">Aluno cadastrado!</p>
+        <p className="text-sm text-muted-foreground">Redirecionando para a lista de alunos...</p>
+      </div>
+    )
   }
 
   return (
@@ -60,6 +80,7 @@ export default function NovoAlunoPage() {
 
       <form onSubmit={handleSubmit(onSubmit)}>
         <div className="grid gap-6">
+          {/* Dados pessoais */}
           <Card>
             <CardHeader><CardTitle className="text-base">Dados Pessoais</CardTitle></CardHeader>
             <CardContent className="space-y-4">
@@ -72,6 +93,7 @@ export default function NovoAlunoPage() {
                 <div>
                   <Label>Email</Label>
                   <Input {...register('email')} placeholder="email@example.com" type="email" className="mt-1.5" />
+                  {errors.email && <p className="text-xs text-red-500 mt-1">{errors.email.message}</p>}
                 </div>
               </div>
               <div>
@@ -81,6 +103,7 @@ export default function NovoAlunoPage() {
             </CardContent>
           </Card>
 
+          {/* Dados acadêmicos */}
           <Card>
             <CardHeader><CardTitle className="text-base">Dados Acadêmicos</CardTitle></CardHeader>
             <CardContent className="space-y-4">
@@ -101,76 +124,124 @@ export default function NovoAlunoPage() {
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <Label>Cursinho</Label>
-                  <Select>
-                    <SelectTrigger className="mt-1.5">
-                      <SelectValue placeholder="Selecionar cursinho" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {mockPrepCourses.map(c => (
-                        <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                  <Controller
+                    name="prep_course_id"
+                    control={control}
+                    render={({ field }) => (
+                      <Select value={field.value ?? ''} onValueChange={field.onChange}>
+                        <SelectTrigger className="mt-1.5">
+                          <SelectValue placeholder="Selecionar cursinho" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {mockPrepCourses.map(c => (
+                            <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    )}
+                  />
                 </div>
                 <div>
                   <Label>Fase de estudo</Label>
-                  <Select defaultValue="construcao">
-                    <SelectTrigger className="mt-1.5">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="construcao">Construção</SelectItem>
-                      <SelectItem value="consolidacao">Consolidação</SelectItem>
-                      <SelectItem value="manutencao">Manutenção</SelectItem>
-                    </SelectContent>
-                  </Select>
+                  <Controller
+                    name="study_phase"
+                    control={control}
+                    render={({ field }) => (
+                      <Select value={field.value} onValueChange={field.onChange}>
+                        <SelectTrigger className="mt-1.5"><SelectValue /></SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="construcao">Construção</SelectItem>
+                          <SelectItem value="consolidacao">Consolidação</SelectItem>
+                          <SelectItem value="manutencao">Manutenção</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    )}
+                  />
                 </div>
               </div>
             </CardContent>
           </Card>
 
+          {/* Equipe */}
           <Card>
             <CardHeader><CardTitle className="text-base">Equipe Responsável</CardTitle></CardHeader>
             <CardContent className="space-y-4">
-              <div className="grid grid-cols-3 gap-4">
+              <div className="grid grid-cols-2 gap-4">
                 <div>
                   <Label>Mentor</Label>
-                  <Select>
-                    <SelectTrigger className="mt-1.5">
-                      <SelectValue placeholder="Selecionar mentor" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {mentors.map(m => (
-                        <SelectItem key={m.id} value={m.id}>{m.name}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                  <Controller
+                    name="mentor_id"
+                    control={control}
+                    render={({ field }) => (
+                      <Select value={field.value ?? ''} onValueChange={field.onChange}>
+                        <SelectTrigger className="mt-1.5">
+                          <SelectValue placeholder="Selecionar mentor" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {mentors.map(m => (
+                            <SelectItem key={m.id} value={m.id}>{m.name}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    )}
+                  />
                 </div>
                 <div>
                   <Label>Orientador de Estudo</Label>
-                  <Select>
-                    <SelectTrigger className="mt-1.5">
-                      <SelectValue placeholder="Selecionar orientador" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {orientadores.map(o => (
-                        <SelectItem key={o.id} value={o.id}>{o.name}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                  <Controller
+                    name="orientador_id"
+                    control={control}
+                    render={({ field }) => (
+                      <Select value={field.value ?? ''} onValueChange={field.onChange}>
+                        <SelectTrigger className="mt-1.5">
+                          <SelectValue placeholder="Selecionar orientador" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {orientadores.map(o => (
+                            <SelectItem key={o.id} value={o.id}>{o.name}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    )}
+                  />
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label>Supervisor</Label>
+                  <Controller
+                    name="supervisor_id"
+                    control={control}
+                    render={({ field }) => (
+                      <Select value={field.value ?? ''} onValueChange={field.onChange}>
+                        <SelectTrigger className="mt-1.5">
+                          <SelectValue placeholder="Selecionar supervisor" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {supervisores.map(s => (
+                            <SelectItem key={s.id} value={s.id}>{s.name}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    )}
+                  />
                 </div>
                 <div>
                   <Label>Status inicial</Label>
-                  <Select defaultValue="ativo">
-                    <SelectTrigger className="mt-1.5">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="ativo">Ativo</SelectItem>
-                      <SelectItem value="inativo">Inativo</SelectItem>
-                      <SelectItem value="critico">Crítico</SelectItem>
-                    </SelectContent>
-                  </Select>
+                  <Controller
+                    name="status"
+                    control={control}
+                    render={({ field }) => (
+                      <Select value={field.value} onValueChange={field.onChange}>
+                        <SelectTrigger className="mt-1.5"><SelectValue /></SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="ativo">Ativo</SelectItem>
+                          <SelectItem value="inativo">Inativo</SelectItem>
+                          <SelectItem value="critico">Crítico</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    )}
+                  />
                 </div>
               </div>
             </CardContent>
