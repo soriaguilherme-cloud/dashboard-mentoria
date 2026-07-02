@@ -128,6 +128,7 @@ export interface WeeklyChecklist {
   difficulties?: string
   observations?: string
   study_hours?: number
+  weekly_checklist?: string
   created_at: string
   updated_at: string
   // relations

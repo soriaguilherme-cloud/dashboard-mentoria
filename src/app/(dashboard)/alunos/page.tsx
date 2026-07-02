@@ -1,6 +1,7 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
+import { useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { mockStudents, mockProfiles, mockPrepCourses } from '@/lib/mock-data'
 import { Student } from '@/types/database'
@@ -19,10 +20,21 @@ type StatusFilter = 'todos' | 'ativo' | 'inativo' | 'critico'
 type MeetingFilter = 'todos' | 'sem_reuniao' | 'atrasados'
 
 export default function AlunosPage() {
+  const searchParams = useSearchParams()
+  const filtroParam = searchParams.get('filtro') as MeetingFilter | null
+
   const [search, setSearch] = useState('')
   const [statusFilter, setStatusFilter] = useState<StatusFilter>('todos')
   const [mentorFilter, setMentorFilter] = useState('todos')
-  const [meetingFilter, setMeetingFilter] = useState<MeetingFilter>('todos')
+  const [meetingFilter, setMeetingFilter] = useState<MeetingFilter>(
+    filtroParam === 'sem_reuniao' || filtroParam === 'atrasados' ? filtroParam : 'todos'
+  )
+
+  useEffect(() => {
+    if (filtroParam === 'sem_reuniao' || filtroParam === 'atrasados') {
+      setMeetingFilter(filtroParam)
+    }
+  }, [filtroParam])
 
   const mentors = mockProfiles.filter(p => p.role === 'mentor')
 
