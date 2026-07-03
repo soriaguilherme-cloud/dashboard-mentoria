@@ -46,10 +46,10 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY=
 docker compose up -d --build
 ```
 
-A aplicação ficará disponível na porta `3000`:
+A aplicação ficará disponível na porta `3005`:
 
 ```bash
-http://IP_DA_VPS:3000
+http://IP_DA_VPS:3005
 ```
 
 ## 5. Atualizar produção
