@@ -1,6 +1,6 @@
 'use client'
 
-import { mockStudents, mockProfiles, mockAlerts } from '@/lib/mock-data'
+import { mockProfiles } from '@/lib/mock-data'
 import { PageHeader } from '@/components/shared/page-header'
 import { StatCard } from '@/components/shared/stat-card'
 import { StudentStatusBadge, RiskScore } from '@/components/shared/status-badge'
@@ -8,10 +8,14 @@ import { AlertSeverityBadge } from '@/components/shared/status-badge'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { AlertTriangle, Users, UserCheck, UserX, Clock, Calendar, Bell } from 'lucide-react'
 import Link from 'next/link'
+import { useAuth } from '@/lib/auth-context'
+import { getAlertsForUser, getStudentsForUser } from '@/lib/access-control'
 
 export default function SupervisaoPage() {
+  const { user } = useAuth()
   const mentors = mockProfiles.filter(p => p.role === 'mentor')
-  const supervisors = mockProfiles.filter(p => p.role === 'supervisor')
+  const scopedStudents = getStudentsForUser(user)
+  const scopedAlerts = getAlertsForUser(user)
 
   return (
     <div className="space-y-6">
@@ -22,14 +26,14 @@ export default function SupervisaoPage() {
 
       {/* Stats gerais */}
       <div className="grid grid-cols-4 gap-4">
-        <StatCard title="Total de Alunos" value={mockStudents.length} icon={Users} variant="info" />
-        <StatCard title="Alunos Ativos" value={mockStudents.filter(s => s.status === 'ativo').length} icon={UserCheck} variant="success" />
-        <StatCard title="Alunos Inativos" value={mockStudents.filter(s => s.status === 'inativo').length} icon={UserX} variant="warning" />
-        <StatCard title="Alunos Críticos" value={mockStudents.filter(s => s.status === 'critico').length} icon={AlertTriangle} variant="danger" />
+        <StatCard title="Total de Alunos" value={scopedStudents.length} icon={Users} variant="info" />
+        <StatCard title="Alunos Ativos" value={scopedStudents.filter(s => s.status === 'ativo').length} icon={UserCheck} variant="success" />
+        <StatCard title="Alunos Inativos" value={scopedStudents.filter(s => s.status === 'inativo').length} icon={UserX} variant="warning" />
+        <StatCard title="Alunos Críticos" value={scopedStudents.filter(s => s.status === 'critico').length} icon={AlertTriangle} variant="danger" />
       </div>
 
       {/* Alertas operacionais */}
-      {mockAlerts.filter(a => !a.is_resolved).length > 0 && (
+      {scopedAlerts.filter(a => !a.is_resolved).length > 0 && (
         <Card>
           <CardHeader className="pb-3">
             <CardTitle className="text-base flex items-center gap-2">
@@ -39,7 +43,7 @@ export default function SupervisaoPage() {
           </CardHeader>
           <CardContent>
             <div className="space-y-2">
-              {mockAlerts.filter(a => !a.is_resolved).map(alert => (
+              {scopedAlerts.filter(a => !a.is_resolved).map(alert => (
                 <div key={alert.id} className={`flex items-start gap-3 rounded-lg border-l-4 p-3 ${
                   alert.severity === 'critical' ? 'border-l-red-500 bg-red-50' :
                   alert.severity === 'warning' ? 'border-l-yellow-500 bg-yellow-50' :
@@ -67,8 +71,8 @@ export default function SupervisaoPage() {
       <div className="space-y-4">
         <h3 className="text-lg font-semibold">Acompanhamento por Mentor</h3>
         {mentors.map(mentor => {
-          const mentorStudents = mockStudents.filter(s => s.mentor_id === mentor.id)
-          const activeStudents = mentorStudents.filter(s => s.status === 'ativo')
+          const mentorStudents = scopedStudents.filter(s => s.mentor_id === mentor.id)
+          if (mentorStudents.length === 0) return null
           const criticalStudents = mentorStudents.filter(s => s.status === 'critico')
           const withoutNext = mentorStudents.filter(s => !s.next_meeting_at)
           const delayed = mentorStudents.filter(s => (s.days_since_last_meeting ?? 0) > 21)

@@ -1,7 +1,7 @@
 'use client'
 
-import { use, useState, useEffect } from 'react'
-import { notFound } from 'next/navigation'
+import { use, useState } from 'react'
+import { notFound, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { mockMeetings, mockMedicalRecords } from '@/lib/mock-data'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -15,20 +15,17 @@ import { Label } from '@/components/ui/label'
 
 export default function ReuniaoPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params)
+  const searchParams = useSearchParams()
   const meeting = mockMeetings.find(m => m.id === id)
   if (!meeting) notFound()
 
   const record = mockMedicalRecords.find(r => r.meeting_id === id)
 
-  const defaultTab = record ? 'prontuario' : 'detalhes'
+  const tabParam = searchParams.get('tab')
+  const defaultTab = tabParam === 'prontuario' || tabParam === 'detalhes' || tabParam === 'transcricao'
+    ? tabParam
+    : record ? 'prontuario' : 'detalhes'
   const [activeTab, setActiveTab] = useState(defaultTab)
-
-  useEffect(() => {
-    const tab = new URLSearchParams(window.location.search).get('tab')
-    if (tab === 'prontuario' || tab === 'detalhes' || tab === 'transcricao') {
-      setActiveTab(tab)
-    }
-  }, [])
 
   return (
     <div className="space-y-6">
@@ -71,6 +68,20 @@ export default function ReuniaoPage({ params }: { params: Promise<{ id: string }
           </div>
         </div>
         <div className="flex gap-2">
+          {meeting.status === 'realizada' && (
+            <Link href={`/reunioes/${meeting.id}/relatorio-aluno`}>
+              <Button variant="outline" className="gap-2">
+                <FileText className="h-4 w-4" /> Relatório do Aluno
+              </Button>
+            </Link>
+          )}
+          {record && meeting.status === 'realizada' && (
+            <Link href={`/reunioes/${meeting.id}/relatorio-aluno`}>
+              <Button className="gap-2">
+                <Sparkles className="h-4 w-4" /> Gerar Guia com IA
+              </Button>
+            </Link>
+          )}
           {!record && meeting.status === 'realizada' && (
             <Button className="gap-2">
               <Sparkles className="h-4 w-4" /> Gerar Prontuário com IA
@@ -131,12 +142,33 @@ export default function ReuniaoPage({ params }: { params: Promise<{ id: string }
                   <CardTitle className="text-base">
                     Prontuário — {format(new Date(record.record_date), "dd/MM/yyyy", { locale: ptBR })}
                   </CardTitle>
-                  <Button variant="outline" size="sm" className="gap-1.5">
-                    <Edit className="h-3.5 w-3.5" /> Editar
-                  </Button>
+                  <div className="flex items-center gap-2">
+                    <Button variant="outline" size="sm" className="gap-1.5">
+                      <Sparkles className="h-3.5 w-3.5" /> Gerar encaminhamentos
+                    </Button>
+                    <Button variant="outline" size="sm" className="gap-1.5">
+                      <Edit className="h-3.5 w-3.5" /> Editar
+                    </Button>
+                  </div>
                 </div>
               </CardHeader>
               <CardContent className="space-y-5">
+                <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
+                  <div className="rounded-xl bg-emerald-50 p-3">
+                    <p className="text-xs font-semibold text-emerald-800">Status pós-reunião</p>
+                    <p className="mt-1 text-sm text-emerald-900">{record.is_approved ? 'Aprovado e pronto para guia' : 'Aguardando aprovação'}</p>
+                  </div>
+                  <div className="rounded-xl bg-blue-50 p-3">
+                    <p className="text-xs font-semibold text-blue-800">Template usado</p>
+                    <p className="mt-1 text-sm text-blue-900">Acompanhamento regular</p>
+                  </div>
+                  <div className="rounded-xl bg-primary/5 p-3">
+                    <p className="text-xs font-semibold text-primary">Relatório ao aluno</p>
+                    <Link href={`/reunioes/${meeting.id}/relatorio-aluno`} className="mt-1 inline-flex text-sm font-semibold text-primary hover:underline">
+                      Abrir guia pós-reunião
+                    </Link>
+                  </div>
+                </div>
                 <Section title="Resumo da Reunião" content={record.meeting_summary} />
                 <Section title="Contexto Atual" content={record.current_context} />
                 <div className="grid grid-cols-2 gap-4">
@@ -178,7 +210,19 @@ export default function ReuniaoPage({ params }: { params: Promise<{ id: string }
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="rounded-lg bg-primary/5 border border-primary/20 p-4 mb-4">
-                  <p className="text-sm text-primary font-medium">💡 Dica: Você pode gerar o prontuário automaticamente com IA fazendo upload do áudio ou vídeo da reunião.</p>
+                  <p className="text-sm text-primary font-medium">Dica: você pode gerar o prontuário automaticamente com IA fazendo upload do áudio ou vídeo da reunião.</p>
+                </div>
+                <div className="grid gap-3 md:grid-cols-3">
+                  {['Acompanhamento regular', 'Aluno crítico', 'Revisão de prova'].map(template => (
+                    <button
+                      key={template}
+                      type="button"
+                      className="rounded-xl border border-border/60 p-3 text-left text-sm font-semibold hover:border-primary/40 hover:bg-primary/5"
+                    >
+                      {template}
+                      <span className="mt-1 block text-xs font-normal text-muted-foreground">Template de prontuário</span>
+                    </button>
+                  ))}
                 </div>
                 {[
                   { label: 'Resumo da Reunião', placeholder: 'O que foi discutido na reunião?' },
@@ -226,8 +270,15 @@ export default function ReuniaoPage({ params }: { params: Promise<{ id: string }
               </div>
               <div className="rounded-lg bg-muted/30 border p-4">
                 <p className="text-xs text-muted-foreground">
-                  <strong>Integração com IA (Fase 3)</strong> — Esta funcionalidade irá suportar transcrição automática via API (Whisper/AssemblyAI), geração de prontuário, extração de metas e próximos passos, e criação do briefing pré-reunião automaticamente.
+                  <strong>Integração com IA</strong> — O fluxo do relatório do aluno já está preparado para consumir transcrição, prontuário, metas, dúvidas e próximos passos. Quando a API estiver conectada, esta etapa gera uma primeira versão do guia para revisão do mentor.
                 </p>
+                {record && (
+                  <Link href={`/reunioes/${meeting.id}/relatorio-aluno`}>
+                    <Button size="sm" className="mt-4 gap-2">
+                      <Sparkles className="h-4 w-4" /> Abrir guia gerado
+                    </Button>
+                  </Link>
+                )}
               </div>
             </CardContent>
           </Card>

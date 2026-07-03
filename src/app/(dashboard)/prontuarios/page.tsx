@@ -1,8 +1,8 @@
-import { mockMedicalRecords, mockStudents, mockProfiles } from '@/lib/mock-data'
+import { mockMedicalRecords, mockStudents, mockProfiles, mockMeetings } from '@/lib/mock-data'
 import { PageHeader } from '@/components/shared/page-header'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { FileText, ChevronRight, CheckCircle2, Clock, Plus } from 'lucide-react'
+import { FileText, ChevronRight, Clock, Plus, Sparkles, ClipboardList } from 'lucide-react'
 import Link from 'next/link'
 import { cn } from '@/lib/utils'
 
@@ -15,6 +15,19 @@ export default function ProntuariosPage() {
 
   const approved = records.filter(r => r.is_approved)
   const pending = records.filter(r => !r.is_approved)
+  const recordedMeetingIds = new Set(records.map(record => record.meeting_id))
+  const pendingPostMeeting = mockMeetings
+    .filter(meeting => meeting.status === 'realizada' && !recordedMeetingIds.has(meeting.id))
+    .map(meeting => ({
+      ...meeting,
+      student: mockStudents.find(student => student.id === meeting.student_id),
+      mentor: mockProfiles.find(profile => profile.id === meeting.mentor_id),
+    }))
+  const templates = [
+    { title: 'Acompanhamento regular', description: 'Resumo, evolução, dificuldades, metas e próxima ação.' },
+    { title: 'Aluno crítico', description: 'Risco, barreiras, intervenção imediata e plano de retomada.' },
+    { title: 'Revisão de prova', description: 'Simulados, temas fracos, estratégia de revisão e agenda.' },
+  ]
 
   return (
     <div className="space-y-6">
@@ -44,8 +57,61 @@ export default function ProntuariosPage() {
         </Card>
         <Card>
           <CardContent className="p-4">
-            <p className="text-xs text-muted-foreground">Pendentes</p>
-            <p className="text-2xl font-bold mt-1 text-yellow-600">{pending.length}</p>
+            <p className="text-xs text-muted-foreground">Pós-reunião pendentes</p>
+            <p className="text-2xl font-bold mt-1 text-yellow-600">{pending.length + pendingPostMeeting.length}</p>
+          </CardContent>
+        </Card>
+      </div>
+
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+        <Card>
+          <CardContent className="p-5">
+            <div className="mb-4 flex items-center justify-between gap-3">
+              <div>
+                <p className="font-semibold">Status de prontuário pós-reunião</p>
+                <p className="text-sm text-muted-foreground">Reuniões realizadas que ainda precisam de registro.</p>
+              </div>
+              <Clock className="h-5 w-5 text-yellow-600" />
+            </div>
+            <div className="space-y-2">
+              {pendingPostMeeting.length > 0 ? pendingPostMeeting.map(meeting => (
+                <div key={meeting.id} className="flex items-center justify-between gap-3 rounded-xl border border-yellow-200 bg-yellow-50 p-3">
+                  <div className="min-w-0">
+                    <p className="truncate text-sm font-semibold">{meeting.student?.name}</p>
+                    <p className="text-xs text-yellow-800">Reunião realizada sem prontuário</p>
+                  </div>
+                  <Link href={`/reunioes/${meeting.id}?tab=prontuario`}>
+                    <Button size="sm" variant="outline" className="gap-1.5">
+                      <FileText className="h-4 w-4" /> Registrar
+                    </Button>
+                  </Link>
+                </div>
+              )) : (
+                <div className="rounded-xl bg-emerald-50 p-4 text-sm text-emerald-700">
+                  Todos os prontuários pós-reunião estão em dia.
+                </div>
+              )}
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardContent className="p-5">
+            <div className="mb-4 flex items-center gap-2">
+              <ClipboardList className="h-5 w-5 text-primary" />
+              <div>
+                <p className="font-semibold">Templates por tipo de encontro</p>
+                <p className="text-sm text-muted-foreground">Modelos prontos para acelerar o registro.</p>
+              </div>
+            </div>
+            <div className="space-y-2">
+              {templates.map(template => (
+                <div key={template.title} className="rounded-xl border border-border/60 p-3">
+                  <p className="text-sm font-semibold">{template.title}</p>
+                  <p className="mt-1 text-xs text-muted-foreground">{template.description}</p>
+                </div>
+              ))}
+            </div>
           </CardContent>
         </Card>
       </div>
@@ -85,6 +151,15 @@ export default function ProntuariosPage() {
                             {t.trim()}
                           </span>
                         ))}
+                      </div>
+                    )}
+                    {record.next_meeting_referrals && (
+                      <div className="mt-3 rounded-xl border border-blue-100 bg-blue-50 p-3">
+                        <p className="mb-1 flex items-center gap-1.5 text-xs font-semibold text-blue-800">
+                          <Sparkles className="h-3.5 w-3.5" />
+                          Encaminhamentos gerados
+                        </p>
+                        <p className="line-clamp-2 text-xs text-blue-900">{record.next_meeting_referrals}</p>
                       </div>
                     )}
                   </div>

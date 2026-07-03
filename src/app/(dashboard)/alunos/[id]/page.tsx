@@ -7,6 +7,20 @@ import {
   mockStudents, mockMeetings, mockMedicalRecords, mockGoals,
   mockWeeklyChecklists, mockStudentTopics, mockMonthlyReports
 } from '@/lib/mock-data'
+import {
+  buildStudentTimeline,
+  getRecommendedAction,
+  getRiskExplanation,
+  getRiskEvolution,
+  getStudentTags,
+  TimelineItem,
+} from '@/lib/operational-intelligence'
+import {
+  getCommunicationHistory,
+  getInternalStudentSummary,
+  getOperationalChecklist,
+  getStudentDocuments,
+} from '@/lib/internal-operations'
 import { StudentStatusBadge, ActivityBadge, RiskScore, StudyPhaseBadge } from '@/components/shared/status-badge'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
@@ -16,8 +30,9 @@ import { format, formatDistanceToNow } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
 import {
   ChevronLeft, Calendar, Clock, Target, BookOpen, ClipboardList,
-  CheckSquare, TrendingUp, AlertTriangle, CheckCircle2, XCircle,
-  FileText, BarChart2, GraduationCap, Plus, Edit, Stethoscope, Users
+  CheckSquare, AlertTriangle, CheckCircle2, XCircle,
+  FileText, BarChart2, Plus, Edit, Stethoscope, Users, Send, Activity,
+  MessageSquare, ShieldCheck, ClipboardCheck
 } from 'lucide-react'
 
 export default function StudentProfilePage({ params }: { params: Promise<{ id: string }> }) {
@@ -31,12 +46,18 @@ export default function StudentProfilePage({ params }: { params: Promise<{ id: s
   const checklists = mockWeeklyChecklists.filter(c => c.student_id === id)
   const studentTopics = mockStudentTopics.filter(t => t.student_id === id)
   const reports = mockMonthlyReports.filter(r => r.student_id === id)
+  const timeline = buildStudentTimeline(id)
+  const riskEvolution = getRiskEvolution(id)
+  const tags = getStudentTags(student)
+  const internalSummary = getInternalStudentSummary(student)
+  const operationalChecklist = getOperationalChecklist(student)
+  const studentDocuments = getStudentDocuments(student.id)
+  const communicationHistory = getCommunicationHistory(student.id)
 
   const pendingGoals = goals.filter(g => !g.is_completed)
   const completedGoals = goals.filter(g => g.is_completed)
   const seenTopics = studentTopics.filter(t => t.status === 'visto')
   const pendingTopics = studentTopics.filter(t => t.status === 'pendente')
-  const lastRecord = records[0]
 
   return (
     <div className="space-y-6">
@@ -64,6 +85,23 @@ export default function StudentProfilePage({ params }: { params: Promise<{ id: s
             <p className="text-muted-foreground mt-1">
               {student.desired_specialty} · {student.target_exam} · {student.target_institution}
             </p>
+            <div className="mt-2 flex flex-wrap gap-1.5">
+              {tags.map(tag => (
+                <Badge
+                  key={tag.label}
+                  variant="secondary"
+                  className={`text-xs ${
+                    tag.tone === 'red' ? 'bg-red-50 text-red-700' :
+                    tag.tone === 'yellow' ? 'bg-yellow-50 text-yellow-700' :
+                    tag.tone === 'emerald' ? 'bg-emerald-50 text-emerald-700' :
+                    tag.tone === 'blue' ? 'bg-blue-50 text-blue-700' :
+                    'bg-slate-100 text-slate-700'
+                  }`}
+                >
+                  {tag.label}
+                </Badge>
+              ))}
+            </div>
             <div className="flex items-center gap-4 mt-2 text-xs text-muted-foreground">
               <span className="flex items-center gap-1.5">
                 <Stethoscope className="h-3.5 w-3.5" />
@@ -103,6 +141,72 @@ export default function StudentProfilePage({ params }: { params: Promise<{ id: s
           ))}
         </div>
       )}
+
+      <Card className="border-l-4 border-l-primary bg-white">
+        <CardHeader className="pb-3">
+          <div className="flex items-start justify-between gap-3">
+            <div>
+              <CardTitle className="flex items-center gap-2 text-base">
+                <ClipboardCheck className="h-4 w-4 text-primary" />
+                Central interna do aluno
+              </CardTitle>
+              <CardDescription>
+                Visão do time sobre risco, operação, documentos e próxima decisão. O aluno não acessa esta área.
+              </CardDescription>
+            </div>
+            <Link href="/operacao">
+              <Button variant="outline" size="sm">Ver operação</Button>
+            </Link>
+          </div>
+        </CardHeader>
+        <CardContent className="grid grid-cols-1 gap-4 lg:grid-cols-[1fr_1.2fr_1fr]">
+          <div className="rounded-xl bg-primary/5 p-4">
+            <p className="text-xs font-semibold uppercase tracking-wide text-primary">Próxima ação</p>
+            <p className="mt-2 text-sm font-semibold">{internalSummary.recommendedAction}</p>
+            <p className="mt-2 text-xs leading-relaxed text-muted-foreground">{internalSummary.internalNote}</p>
+          </div>
+
+          <div className="rounded-xl border border-border/60 p-4">
+            <div className="mb-3 flex items-center justify-between">
+              <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Checklist interno</p>
+              <span className="rounded-full bg-muted px-2 py-0.5 text-xs font-semibold">{internalSummary.completion}%</span>
+            </div>
+            <div className="space-y-2">
+              {operationalChecklist.slice(0, 4).map(item => (
+                <div key={item.id} className="flex items-center justify-between gap-3">
+                  <div className="flex min-w-0 items-center gap-2">
+                    {item.done ? (
+                      <CheckCircle2 className="h-4 w-4 flex-shrink-0 text-emerald-600" />
+                    ) : (
+                      <Clock className="h-4 w-4 flex-shrink-0 text-yellow-600" />
+                    )}
+                    <p className="truncate text-sm">{item.label}</p>
+                  </div>
+                  <span className="flex-shrink-0 text-xs text-muted-foreground">{item.owner}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <div className="rounded-xl border border-border/60 p-4">
+            <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Último envio/combinado</p>
+            {internalSummary.latestCommunication ? (
+              <div className="mt-3">
+                <div className="flex items-center gap-2">
+                  <MessageSquare className="h-4 w-4 text-primary" />
+                  <p className="text-sm font-semibold">{internalSummary.latestCommunication.title}</p>
+                </div>
+                <p className="mt-1 line-clamp-2 text-xs text-muted-foreground">{internalSummary.latestCommunication.summary}</p>
+                <p className="mt-2 text-xs text-muted-foreground">
+                  {internalSummary.latestCommunication.channel} · {internalSummary.latestCommunication.owner}
+                </p>
+              </div>
+            ) : (
+              <p className="mt-3 text-sm text-muted-foreground">Nenhuma comunicação registrada ainda.</p>
+            )}
+          </div>
+        </CardContent>
+      </Card>
 
       {/* Cards de situação rápida */}
       <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
@@ -164,10 +268,52 @@ export default function StudentProfilePage({ params }: { params: Promise<{ id: s
         </Card>
       </div>
 
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
+        <Card className="lg:col-span-2">
+          <CardHeader className="pb-3">
+            <CardTitle className="flex items-center gap-2 text-base">
+              <AlertTriangle className="h-4 w-4 text-primary" />
+              Score de risco explicável
+            </CardTitle>
+            <CardDescription>Motivos usados para classificar a prioridade do aluno.</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            <div className="flex items-center gap-3">
+              <RiskScore score={student.risk_score} />
+              <p className="text-sm font-medium">{getRiskExplanation(student)}</p>
+            </div>
+            {riskEvolution.length > 0 && (
+              <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+                {riskEvolution.map(point => (
+                  <div key={point.label} className="rounded-xl bg-muted/40 p-3">
+                    <p className="text-xs text-muted-foreground">{point.label}</p>
+                    <p className="mt-1 text-lg font-bold">{point.risk}/10</p>
+                  </div>
+                ))}
+              </div>
+            )}
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader className="pb-3">
+            <CardTitle className="flex items-center gap-2 text-base">
+              <Activity className="h-4 w-4 text-primary" />
+              Próxima ação recomendada
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="rounded-xl bg-primary/5 p-4 text-sm font-semibold text-primary">
+              {getRecommendedAction(student)}
+            </p>
+          </CardContent>
+        </Card>
+      </div>
+
       {/* Abas principais */}
       <Tabs defaultValue="prontuario">
-        <TabsList className="grid w-full grid-cols-6">
+        <TabsList className="grid w-full grid-cols-7">
           <TabsTrigger value="prontuario">Prontuário</TabsTrigger>
+          <TabsTrigger value="timeline">Timeline</TabsTrigger>
           <TabsTrigger value="reunioes">Reuniões</TabsTrigger>
           <TabsTrigger value="metas">Metas</TabsTrigger>
           <TabsTrigger value="temas">Temas</TabsTrigger>
@@ -241,6 +387,43 @@ export default function StudentProfilePage({ params }: { params: Promise<{ id: s
                 </CardContent>
               </Card>
             ))
+          )}
+        </TabsContent>
+
+        {/* ABA: TIMELINE */}
+        <TabsContent value="timeline" className="space-y-4 mt-4">
+          <div className="flex items-center justify-between">
+            <div>
+              <h3 className="font-semibold">Timeline do Aluno</h3>
+              <p className="text-sm text-muted-foreground">Reuniões, prontuários, checklists, metas e alertas em uma linha do tempo.</p>
+            </div>
+            <Link href={`/reunioes/nova?aluno=${id}`}>
+              <Button size="sm" className="gap-2">
+                <Plus className="h-4 w-4" /> Nova ação
+              </Button>
+            </Link>
+          </div>
+
+          {timeline.length === 0 ? (
+            <Card>
+              <CardContent className="py-12 text-center text-muted-foreground">
+                <Activity className="h-12 w-12 mx-auto mb-3 opacity-30" />
+                <p>Nenhum evento registrado ainda.</p>
+                <Link href={`/reunioes/nova?aluno=${id}`}>
+                  <Button variant="outline" size="sm" className="mt-3">Agendar primeira reunião</Button>
+                </Link>
+              </CardContent>
+            </Card>
+          ) : (
+            <Card>
+              <CardContent className="p-5">
+                <div className="space-y-4">
+                  {timeline.map(item => (
+                    <TimelineRow key={item.id} item={item} />
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
           )}
         </TabsContent>
 
@@ -503,11 +686,65 @@ export default function StudentProfilePage({ params }: { params: Promise<{ id: s
         {/* ABA: RELATÓRIOS */}
         <TabsContent value="relatorios" className="space-y-4 mt-4">
           <div className="flex items-center justify-between">
-            <h3 className="font-semibold">Relatórios Mensais e Evolução</h3>
+            <h3 className="font-semibold">Relatórios e Guias do Aluno</h3>
             <Button size="sm" className="gap-2">
               <Plus className="h-4 w-4" /> Novo Relatório
             </Button>
           </div>
+
+          <Card>
+            <CardHeader className="pb-3">
+              <CardTitle className="text-base">Guias pós-reunião enviados ao aluno</CardTitle>
+              <CardDescription>Histórico dos documentos no modelo do guia de estudos.</CardDescription>
+            </CardHeader>
+            <CardContent>
+              {studentDocuments.length > 0 ? (
+                <div className="space-y-3">
+                  {studentDocuments.map(document => (
+                    <div key={document.id} className="flex items-center justify-between gap-4 rounded-xl border border-border/60 p-4">
+                      <div className="flex min-w-0 items-center gap-3">
+                        <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary">
+                          <FileText className="h-5 w-5" />
+                        </div>
+                        <div className="min-w-0">
+                          <p className="truncate text-sm font-semibold">{document.title}</p>
+                          <p className="text-xs text-muted-foreground">
+                            {format(new Date(document.createdAt), "dd/MM/yyyy", { locale: ptBR })}
+                            {document.reviewedBy ? ` · revisado por ${document.reviewedBy}` : ' · aguardando revisão'}
+                          </p>
+                          <p className="mt-1 line-clamp-1 text-xs text-muted-foreground">{document.internalNote}</p>
+                        </div>
+                      </div>
+                      <div className="flex flex-shrink-0 items-center gap-2">
+                        <span className={`inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-semibold ${
+                          document.status === 'enviado' ? 'bg-emerald-100 text-emerald-700' :
+                          document.status === 'revisado' ? 'bg-blue-100 text-blue-700' :
+                          'bg-yellow-100 text-yellow-800'
+                        }`}>
+                          {document.status === 'enviado' ? <Send className="h-3 w-3" /> : <ShieldCheck className="h-3 w-3" />}
+                          {document.status === 'enviado'
+                            ? `Enviado ${document.sentAt ? format(new Date(document.sentAt), 'dd/MM', { locale: ptBR }) : ''}`
+                            : document.status === 'revisado'
+                              ? 'Revisado'
+                              : 'Rascunho'}
+                        </span>
+                        <Link href={document.meetingId ? `/reunioes/${document.meetingId}/relatorio-aluno` : `/alunos/${student.id}`}>
+                          <Button variant="outline" size="sm">
+                            Abrir guia
+                          </Button>
+                        </Link>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="rounded-xl bg-muted/30 p-6 text-center text-sm text-muted-foreground">
+                  Nenhum guia pós-reunião gerado ainda.
+                </div>
+              )}
+            </CardContent>
+          </Card>
+
           {reports.length > 0 && (
             <Card>
               <CardHeader className="pb-3">
@@ -557,6 +794,40 @@ export default function StudentProfilePage({ params }: { params: Promise<{ id: s
               </CardContent>
             </Card>
           )}
+
+          <Card>
+            <CardHeader className="pb-3">
+              <CardTitle className="text-base">Histórico de comunicação</CardTitle>
+              <CardDescription>Registro interno do que foi enviado ou combinado fora do sistema.</CardDescription>
+            </CardHeader>
+            <CardContent>
+              {communicationHistory.length > 0 ? (
+                <div className="space-y-3">
+                  {communicationHistory.map(log => (
+                    <div key={log.id} className="rounded-xl border border-border/60 p-4">
+                      <div className="flex items-center justify-between gap-3">
+                        <div className="flex min-w-0 items-center gap-2">
+                          <MessageSquare className="h-4 w-4 flex-shrink-0 text-primary" />
+                          <p className="truncate text-sm font-semibold">{log.title}</p>
+                        </div>
+                        <span className="rounded-full bg-muted px-2.5 py-1 text-xs font-semibold text-muted-foreground">
+                          {log.channel}
+                        </span>
+                      </div>
+                      <p className="mt-2 text-sm text-muted-foreground">{log.summary}</p>
+                      <p className="mt-2 text-xs text-muted-foreground">
+                        {log.owner} · {format(new Date(log.createdAt), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}
+                      </p>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="rounded-xl bg-muted/30 p-6 text-center text-sm text-muted-foreground">
+                  Nenhuma comunicação registrada para este aluno.
+                </div>
+              )}
+            </CardContent>
+          </Card>
         </TabsContent>
       </Tabs>
     </div>
@@ -580,5 +851,40 @@ function MedicalRecordSection({
       </p>
       <p className="text-sm text-foreground whitespace-pre-line leading-relaxed">{content}</p>
     </div>
+  )
+}
+
+function TimelineRow({ item }: { item: TimelineItem }) {
+  const dotClass = item.tone === 'red' ? 'bg-red-500' :
+    item.tone === 'yellow' ? 'bg-yellow-500' :
+    item.tone === 'emerald' ? 'bg-emerald-500' :
+    item.tone === 'blue' ? 'bg-blue-500' :
+    'bg-slate-500'
+
+  const content = (
+    <div className="flex gap-3">
+      <div className="flex flex-col items-center">
+        <span className={`mt-1 h-3 w-3 rounded-full ${dotClass}`} />
+        <span className="mt-2 h-full w-px bg-border" />
+      </div>
+      <div className="min-w-0 flex-1 rounded-xl border border-border/60 p-4">
+        <div className="flex flex-wrap items-center gap-2">
+          <Badge variant="outline" className="capitalize">{item.type}</Badge>
+          <p className="text-xs text-muted-foreground">
+            {format(new Date(item.date), "dd/MM/yyyy", { locale: ptBR })}
+          </p>
+        </div>
+        <p className="mt-2 text-sm font-semibold">{item.title}</p>
+        <p className="mt-1 line-clamp-2 text-sm text-muted-foreground">{item.description}</p>
+      </div>
+    </div>
+  )
+
+  if (!item.href) return content
+
+  return (
+    <Link href={item.href} className="block transition-colors hover:bg-muted/20">
+      {content}
+    </Link>
   )
 }

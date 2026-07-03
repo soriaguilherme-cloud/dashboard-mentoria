@@ -11,8 +11,9 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Textarea } from '@/components/ui/textarea'
-import { ChevronLeft, Save, Calendar, AlertCircle } from 'lucide-react'
+import { ChevronLeft, Save, Calendar, AlertCircle, UserRound, ClipboardList, Sparkles, CheckCircle2 } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import { getPreMeetingSuggestions } from '@/lib/operational-intelligence'
 
 function NovaReuniaoInner() {
   const searchParams = useSearchParams()
@@ -33,6 +34,12 @@ function NovaReuniaoInner() {
   const mentors = mockProfiles.filter(p => p.role === 'mentor')
   const selectedStudent = mockStudents.find(s => s.id === studentId)
   const resolvedMentorId = mentorId || selectedStudent?.mentor_id || ''
+  const agendaSuggestions = getPreMeetingSuggestions(selectedStudent)
+  const stepStatus = [
+    { label: 'Aluno e mentor', done: Boolean(studentId && resolvedMentorId), icon: UserRound },
+    { label: 'Data e formato', done: Boolean(date && time), icon: Calendar },
+    { label: 'Pauta', done: Boolean(notes.trim()), icon: ClipboardList },
+  ]
 
   function validate() {
     const errs: Record<string, string> = {}
@@ -56,7 +63,7 @@ function NovaReuniaoInner() {
   }
 
   return (
-    <div className="space-y-6 max-w-2xl">
+    <div className="space-y-6 max-w-4xl">
       <div className="flex items-center gap-2 text-sm text-muted-foreground">
         <Link href="/reunioes" className="flex items-center gap-1 hover:text-foreground">
           <ChevronLeft className="h-4 w-4" /> Reuniões
@@ -67,8 +74,34 @@ function NovaReuniaoInner() {
 
       <PageHeader
         title="Nova Reunião"
-        description="Agendar uma nova sessão de mentoria"
+        description="Fluxo guiado para agendar o encontro e preparar a pauta"
       />
+
+      <div className="grid gap-3 md:grid-cols-3">
+        {stepStatus.map((step, index) => {
+          const Icon = step.icon
+          return (
+            <div
+              key={step.label}
+              className={cn(
+                'flex items-center gap-3 rounded-2xl border bg-white p-4 shadow-sm',
+                step.done ? 'border-emerald-200 bg-emerald-50/60' : 'border-border/60'
+              )}
+            >
+              <div className={cn(
+                'flex h-9 w-9 items-center justify-center rounded-xl',
+                step.done ? 'bg-emerald-100 text-emerald-700' : 'bg-muted text-muted-foreground'
+              )}>
+                {step.done ? <CheckCircle2 className="h-4 w-4" /> : <Icon className="h-4 w-4" />}
+              </div>
+              <div>
+                <p className="text-xs text-muted-foreground">Etapa {index + 1}</p>
+                <p className="text-sm font-semibold">{step.label}</p>
+              </div>
+            </div>
+          )
+        })}
+      </div>
 
       <form onSubmit={handleSubmit} noValidate>
         <Card>
@@ -79,7 +112,11 @@ function NovaReuniaoInner() {
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-5">
-            {/* Aluno */}
+            <div className="rounded-xl border border-border/60 p-4">
+            <div className="mb-4 flex items-center gap-2 text-sm font-semibold">
+              <UserRound className="h-4 w-4 text-primary" />
+              1. Selecionar aluno e responsável
+            </div>
             <div className="space-y-1.5">
               <Label htmlFor="student">Aluno *</Label>
               <Select value={studentId} onValueChange={v => { setStudentId(v); setErrors(p => ({ ...p, student: '' })) }}>
@@ -101,7 +138,7 @@ function NovaReuniaoInner() {
             </div>
 
             {/* Mentor */}
-            <div className="space-y-1.5">
+            <div className="mt-4 space-y-1.5">
               <Label htmlFor="mentor">Mentor *</Label>
               <Select
                 value={resolvedMentorId}
@@ -118,8 +155,13 @@ function NovaReuniaoInner() {
               </Select>
               {errors.mentor && <p className="flex items-center gap-1 text-xs text-red-500"><AlertCircle className="h-3 w-3" />{errors.mentor}</p>}
             </div>
+            </div>
 
-            {/* Data e hora */}
+            <div className="rounded-xl border border-border/60 p-4">
+            <div className="mb-4 flex items-center gap-2 text-sm font-semibold">
+              <Calendar className="h-4 w-4 text-primary" />
+              2. Definir data, duração e formato
+            </div>
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-1.5">
                 <Label htmlFor="date">Data *</Label>
@@ -174,7 +216,7 @@ function NovaReuniaoInner() {
             </div>
 
             {/* Local */}
-            <div className="space-y-1.5">
+            <div className="mt-4 space-y-1.5">
               <Label htmlFor="location">Local / Link</Label>
               <Input
                 id="location"
@@ -183,10 +225,28 @@ function NovaReuniaoInner() {
                 onChange={e => setLocation(e.target.value)}
               />
             </div>
+            </div>
 
-            {/* Observações */}
+            <div className="rounded-xl border border-border/60 p-4">
+            <div className="mb-4 flex items-center gap-2 text-sm font-semibold">
+              <ClipboardList className="h-4 w-4 text-primary" />
+              3. Preparar pauta do encontro
+            </div>
+            {agendaSuggestions.length > 0 && (
+              <div className="mb-4 rounded-xl border border-primary/20 bg-primary/5 p-4">
+                <div className="mb-2 flex items-center gap-2 text-sm font-semibold text-primary">
+                  <Sparkles className="h-4 w-4" />
+                  Sugestão de pauta antes da reunião
+                </div>
+                <ul className="space-y-1 text-sm text-muted-foreground">
+                  {agendaSuggestions.map(suggestion => (
+                    <li key={suggestion}>• {suggestion}</li>
+                  ))}
+                </ul>
+              </div>
+            )}
             <div className="space-y-1.5">
-              <Label htmlFor="notes">Observações</Label>
+              <Label htmlFor="notes">Pauta e objetivos</Label>
               <Textarea
                 id="notes"
                 placeholder="Pautas, objetivos ou observações para esta reunião..."
@@ -195,6 +255,7 @@ function NovaReuniaoInner() {
                 onChange={e => setNotes(e.target.value)}
                 className="resize-none"
               />
+            </div>
             </div>
 
             {/* Actions */}

@@ -9,6 +9,7 @@ import { StudentStatusBadge, RiskScore, StudyPhaseBadge, ActivityBadge } from '@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { useAuth } from '@/lib/auth-context'
 import { format } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
 import {
@@ -16,14 +17,15 @@ import {
   FileText, Clock, ChevronRight, Plus, Bell
 } from 'lucide-react'
 
-const DEMO_MENTOR_ID = 'u4' // Dr. Ricardo Oliveira — for demonstration
-
 export default function MentorPage() {
-  const [selectedMentorId, setSelectedMentorId] = useState(DEMO_MENTOR_ID)
+  const { user } = useAuth()
 
   const mentors = mockProfiles.filter(p => p.role === 'mentor')
-  const selectedMentor = mentors.find(m => m.id === selectedMentorId)
-  const myStudents = mockStudents.filter(s => s.mentor_id === selectedMentorId)
+  const defaultMentorId = user?.role === 'mentor' ? user.id : mentors[0]?.id
+  const [selectedMentorId, setSelectedMentorId] = useState(defaultMentorId ?? '')
+  const effectiveMentorId = user?.role === 'mentor' ? user.id : selectedMentorId
+  const selectedMentor = mentors.find(m => m.id === effectiveMentorId)
+  const myStudents = mockStudents.filter(s => s.mentor_id === effectiveMentorId)
 
   const activeCount = myStudents.filter(s => s.status === 'ativo').length
   const inactiveCount = myStudents.filter(s => s.status === 'inativo').length
@@ -39,16 +41,18 @@ export default function MentorPage() {
           description="Visão da sua carteira de alunos"
         />
         <div className="flex items-center gap-3">
-          <Select value={selectedMentorId} onValueChange={v => v && setSelectedMentorId(v)}>
-            <SelectTrigger className="w-56">
-              <SelectValue placeholder="Selecionar mentor" />
-            </SelectTrigger>
-            <SelectContent>
-              {mentors.map(m => (
-                <SelectItem key={m.id} value={m.id}>{m.name}</SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+          {user?.role !== 'mentor' && (
+            <Select value={selectedMentorId} onValueChange={v => v && setSelectedMentorId(v)}>
+              <SelectTrigger className="w-56">
+                <SelectValue placeholder="Selecionar mentor" />
+              </SelectTrigger>
+              <SelectContent>
+                {mentors.map(m => (
+                  <SelectItem key={m.id} value={m.id}>{m.name}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          )}
         </div>
       </div>
 
@@ -144,7 +148,6 @@ export default function MentorPage() {
                 ) : (
                   myStudents.map(student => {
                     const isDelayed = (student.days_since_last_meeting ?? 0) > 21
-                    const noNext = !student.next_meeting_at
                     return (
                       <tr key={student.id} className={`border-b transition-colors hover:bg-muted/20 ${student.status === 'critico' ? 'bg-red-50/50' : ''}`}>
                         <td className="py-3.5 px-4">
