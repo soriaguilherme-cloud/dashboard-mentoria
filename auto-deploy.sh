@@ -4,9 +4,19 @@
 # Stop : Ctrl+C
 
 REPO_DIR="$(cd "$(dirname "$0")" && pwd)"
-COOLIFY_TOKEN="7|arBap72H3o3xMBX0T1vwt6KqK9ovnV1uXYDinj7E70f9b345"
-COOLIFY_URL="http://31.97.91.37:8000"
-APP_UUID="sa97dd2l74w47u6dnw4eqa0f"
+
+# Segredos ficam em .env / .env.local (gitignored). NUNCA commite o token aqui.
+for envf in "$REPO_DIR/.env" "$REPO_DIR/.env.local"; do
+  [ -f "$envf" ] && { set -a; . "$envf"; set +a; }
+done
+COOLIFY_URL="${COOLIFY_URL:-http://31.97.91.37:8000}"
+APP_UUID="${APP_UUID:-sa97dd2l74w47u6dnw4eqa0f}"
+
+if [ -z "${COOLIFY_TOKEN:-}" ]; then
+  echo "[auto-deploy] ERRO: COOLIFY_TOKEN não definido."
+  echo "  Adicione em .env.local:  COOLIFY_TOKEN=\"seu_token_novo\""
+  exit 1
+fi
 DEBOUNCE=4          # seconds to wait after last change
 FLAG_FILE="/tmp/autodeploy_${APP_UUID}.flag"
 
