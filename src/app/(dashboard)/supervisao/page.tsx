@@ -25,7 +25,7 @@ export default function SupervisaoPage() {
       />
 
       {/* Stats gerais */}
-      <div className="grid grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
         <StatCard title="Total de Alunos" value={scopedStudents.length} icon={Users} variant="info" />
         <StatCard title="Alunos Ativos" value={scopedStudents.filter(s => s.status === 'ativo').length} icon={UserCheck} variant="success" />
         <StatCard title="Alunos Inativos" value={scopedStudents.filter(s => s.status === 'inativo').length} icon={UserX} variant="warning" />

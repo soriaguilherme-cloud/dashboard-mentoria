@@ -74,7 +74,7 @@ export default function MentorPage() {
       )}
 
       {/* Stats do mentor */}
-      <div className="grid grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
         <StatCard title="Total de Alunos" value={myStudents.length} icon={Users} variant="info" />
         <StatCard title="Ativos" value={activeCount} icon={UserCheck} variant="success" />
         <StatCard title="Inativos" value={inactiveCount} icon={UserX} variant="warning" />

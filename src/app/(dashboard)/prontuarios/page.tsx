@@ -42,7 +42,7 @@ export default function ProntuariosPage() {
       />
 
       {/* Summary */}
-      <div className="grid grid-cols-3 gap-4">
+      <div className="grid gap-3 sm:grid-cols-3">
         <Card>
           <CardContent className="p-4">
             <p className="text-xs text-muted-foreground">Total de registros</p>

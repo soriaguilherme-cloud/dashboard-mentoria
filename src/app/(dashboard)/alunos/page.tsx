@@ -13,7 +13,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Card, CardContent } from '@/components/ui/card'
 import { format } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
-import { Search, UserPlus, Calendar, Clock, AlertTriangle, Eye, X, Bookmark, SlidersHorizontal } from 'lucide-react'
+import { Search, UserPlus, Calendar, Clock, AlertTriangle, Eye, X, Bookmark, SlidersHorizontal, ChevronDown } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { useAuth } from '@/lib/auth-context'
 import { getStudentsForUser } from '@/lib/access-control'
@@ -66,6 +66,7 @@ function AlunosPageInner() {
     if (typeof window === 'undefined') return false
     return Boolean(window.localStorage.getItem('mentoria-alunos-favorite-filters'))
   })
+  const [filtersOpen, setFiltersOpen] = useState(false)
 
   const mentors = mockProfiles.filter(p => p.role === 'mentor' && scopedStudents.some(student => student.mentor_id === p.id))
   const supervisors = mockProfiles.filter(p => p.role === 'supervisor' && scopedStudents.some(student => student.supervisor_id === p.id))
@@ -182,11 +183,26 @@ function AlunosPageInner() {
       </div>
 
       {/* Filters */}
-      <div className="flex flex-wrap items-center gap-3 rounded-2xl border border-border/60 bg-white p-4 shadow-sm">
-        <div className="flex w-full items-center gap-2 text-sm font-semibold text-foreground">
-          <SlidersHorizontal className="h-4 w-4 text-primary" />
-          Filtros globais
-        </div>
+      <div className="rounded-2xl border border-border/60 bg-white p-4 shadow-sm">
+        <button
+          type="button"
+          onClick={() => setFiltersOpen(o => !o)}
+          className="flex w-full items-center justify-between gap-2 text-sm font-semibold text-foreground"
+        >
+          <span className="flex items-center gap-2">
+            <SlidersHorizontal className="h-4 w-4 text-primary" />
+            Filtros globais
+          </span>
+          <span className="flex items-center gap-2 text-muted-foreground md:hidden">
+            {hasFilters && (
+              <span className="rounded-full bg-primary/10 px-2 py-0.5 text-[11px] font-semibold text-primary">
+                {filtered.length} result.
+              </span>
+            )}
+            <ChevronDown className={cn('h-4 w-4 transition-transform', filtersOpen && 'rotate-180')} />
+          </span>
+        </button>
+        <div className={cn('mt-3 flex-wrap items-center gap-3', filtersOpen ? 'flex' : 'hidden', 'md:flex')}>
         <div className="relative flex-1 min-w-48">
           <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
           <Input
@@ -279,6 +295,7 @@ function AlunosPageInner() {
           </Button>
         )}
         <span className="ml-auto text-sm text-muted-foreground">{filtered.length} resultado{filtered.length !== 1 ? 's' : ''}</span>
+        </div>
       </div>
 
       {/* Mobile: cartões tocáveis */}
