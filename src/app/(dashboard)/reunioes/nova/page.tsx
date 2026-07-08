@@ -162,7 +162,7 @@ function NovaReuniaoInner() {
               <Calendar className="h-4 w-4 text-primary" />
               2. Definir data, duração e formato
             </div>
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid gap-4 sm:grid-cols-2">
               <div className="space-y-1.5">
                 <Label htmlFor="date">Data *</Label>
                 <Input
@@ -188,7 +188,7 @@ function NovaReuniaoInner() {
             </div>
 
             {/* Duração e tipo */}
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid gap-4 sm:grid-cols-2">
               <div className="space-y-1.5">
                 <Label htmlFor="duration">Duração (min)</Label>
                 <Select value={duration} onValueChange={setDuration}>

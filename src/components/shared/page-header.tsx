@@ -15,15 +15,15 @@ function getMonthLabel() {
 
 export function PageHeader({ title, description, action, showDateBadge = false }: PageHeaderProps) {
   return (
-    <div className="mb-6 flex items-start justify-between gap-4">
-      <div>
+    <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between sm:gap-4">
+      <div className="min-w-0">
         <h1 className="text-[22px] font-bold leading-tight text-foreground">{title}</h1>
         {description && (
           <p className="mt-0.5 text-sm text-muted-foreground">{description}</p>
         )}
       </div>
 
-      <div className="flex flex-shrink-0 items-center gap-2">
+      <div className="flex flex-shrink-0 flex-wrap items-center gap-2">
         {showDateBadge && (
           <div className="flex items-center gap-1.5 rounded-lg border border-border/60 bg-white px-3 py-2">
             <Calendar className="h-3.5 w-3.5 text-muted-foreground" />
@@ -33,10 +33,10 @@ export function PageHeader({ title, description, action, showDateBadge = false }
         {action}
         {showDateBadge && (
           <>
-            <button className="flex h-9 w-9 items-center justify-center rounded-lg border border-border/60 bg-white text-muted-foreground transition-colors hover:border-primary/30 hover:text-primary">
+            <button className="hidden h-9 w-9 items-center justify-center rounded-lg border border-border/60 bg-white text-muted-foreground transition-colors hover:border-primary/30 hover:text-primary sm:flex">
               <RefreshCw className="h-3.5 w-3.5" />
             </button>
-            <button className="flex h-9 w-9 items-center justify-center rounded-lg border border-border/60 bg-white text-muted-foreground transition-colors hover:border-primary/30 hover:text-primary">
+            <button className="hidden h-9 w-9 items-center justify-center rounded-lg border border-border/60 bg-white text-muted-foreground transition-colors hover:border-primary/30 hover:text-primary sm:flex">
               <Download className="h-3.5 w-3.5" />
             </button>
           </>

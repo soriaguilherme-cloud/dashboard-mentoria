@@ -141,7 +141,7 @@ export default function LoginPage() {
                   placeholder="seu@email.com"
                   value={email}
                   onChange={e => setEmail(e.target.value)}
-                  className="mt-1.5 h-10 w-full rounded-lg border border-border/60 bg-white px-3 text-sm outline-none focus:border-primary focus:ring-1 focus:ring-primary/20 transition-all"
+                  className="mt-1.5 h-10 w-full rounded-lg border border-border/60 bg-white px-3 text-base outline-none focus:border-primary focus:ring-1 focus:ring-primary/20 transition-all md:text-sm"
                 />
               </div>
               <div>
@@ -154,7 +154,7 @@ export default function LoginPage() {
                     placeholder="••••••••"
                     value={password}
                     onChange={e => setPassword(e.target.value)}
-                    className="h-10 w-full rounded-lg border border-border/60 bg-white px-3 pr-10 text-sm outline-none focus:border-primary focus:ring-1 focus:ring-primary/20 transition-all"
+                    className="h-10 w-full rounded-lg border border-border/60 bg-white px-3 pr-10 text-base outline-none focus:border-primary focus:ring-1 focus:ring-primary/20 transition-all md:text-sm"
                   />
                   <button
                     type="button"

@@ -84,7 +84,7 @@ export default function NovoAlunoPage() {
           <Card>
             <CardHeader><CardTitle className="text-base">Dados Pessoais</CardTitle></CardHeader>
             <CardContent className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid gap-4 sm:grid-cols-2">
                 <div>
                   <Label>Nome completo *</Label>
                   <Input {...register('name')} placeholder="Nome do aluno" className="mt-1.5" />
@@ -107,7 +107,7 @@ export default function NovoAlunoPage() {
           <Card>
             <CardHeader><CardTitle className="text-base">Dados Acadêmicos</CardTitle></CardHeader>
             <CardContent className="space-y-4">
-              <div className="grid grid-cols-3 gap-4">
+              <div className="grid gap-4 sm:grid-cols-3">
                 <div>
                   <Label>Especialidade desejada</Label>
                   <Input {...register('desired_specialty')} placeholder="Ex: Clínica Médica" className="mt-1.5" />
@@ -121,7 +121,7 @@ export default function NovoAlunoPage() {
                   <Input {...register('target_institution')} placeholder="Ex: USP" className="mt-1.5" />
                 </div>
               </div>
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid gap-4 sm:grid-cols-2">
                 <div>
                   <Label>Cursinho</Label>
                   <Controller
@@ -166,7 +166,7 @@ export default function NovoAlunoPage() {
           <Card>
             <CardHeader><CardTitle className="text-base">Equipe Responsável</CardTitle></CardHeader>
             <CardContent className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid gap-4 sm:grid-cols-2">
                 <div>
                   <Label>Mentor</Label>
                   <Controller
@@ -206,7 +206,7 @@ export default function NovoAlunoPage() {
                   />
                 </div>
               </div>
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid gap-4 sm:grid-cols-2">
                 <div>
                   <Label>Supervisor</Label>
                   <Controller

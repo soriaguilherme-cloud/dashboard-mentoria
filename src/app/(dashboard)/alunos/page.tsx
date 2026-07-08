@@ -159,7 +159,7 @@ function AlunosPageInner() {
       />
 
       {/* Status summary */}
-      <div className="grid grid-cols-4 gap-3">
+      <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
         {[
           { label: 'Total', count: scopedStudents.length, className: 'border-border', filter: 'todos' },
           { label: 'Ativos', count: countByStatus('ativo'), className: 'border-l-4 border-l-emerald-500', filter: 'ativo' },
@@ -198,7 +198,7 @@ function AlunosPageInner() {
         </div>
         {user?.role !== 'mentor' && (
           <Select value={mentorFilter} onValueChange={v => setMentorFilter(v ?? 'todos')}>
-            <SelectTrigger className="w-52">
+            <SelectTrigger className="w-full sm:w-52">
               <SelectValue placeholder="Filtrar por mentor" />
             </SelectTrigger>
             <SelectContent>
@@ -211,7 +211,7 @@ function AlunosPageInner() {
         )}
         {user?.role === 'coordenacao' && (
           <Select value={supervisorFilter} onValueChange={v => setSupervisorFilter(v ?? 'todos')}>
-            <SelectTrigger className="w-52">
+            <SelectTrigger className="w-full sm:w-52">
               <SelectValue placeholder="Supervisor" />
             </SelectTrigger>
             <SelectContent>
@@ -223,7 +223,7 @@ function AlunosPageInner() {
           </Select>
         )}
         <Select value={prepCourseFilter} onValueChange={v => setPrepCourseFilter(v ?? 'todos')}>
-          <SelectTrigger className="w-48">
+          <SelectTrigger className="w-full sm:w-48">
             <SelectValue placeholder="Cursinho" />
           </SelectTrigger>
           <SelectContent>
@@ -234,7 +234,7 @@ function AlunosPageInner() {
           </SelectContent>
         </Select>
         <Select value={phaseFilter} onValueChange={v => setPhaseFilter((v ?? 'todos') as PhaseFilter)}>
-          <SelectTrigger className="w-48">
+          <SelectTrigger className="w-full sm:w-48">
             <SelectValue placeholder="Fase" />
           </SelectTrigger>
           <SelectContent>
@@ -245,7 +245,7 @@ function AlunosPageInner() {
           </SelectContent>
         </Select>
         <Select value={riskFilter} onValueChange={v => setRiskFilter((v ?? 'todos') as RiskFilter)}>
-          <SelectTrigger className="w-44">
+          <SelectTrigger className="w-full sm:w-44">
             <SelectValue placeholder="Risco" />
           </SelectTrigger>
           <SelectContent>
@@ -256,7 +256,7 @@ function AlunosPageInner() {
           </SelectContent>
         </Select>
         <Select value={meetingFilter} onValueChange={v => setMeetingFilter((v ?? 'todos') as MeetingFilter)}>
-          <SelectTrigger className="w-52">
+          <SelectTrigger className="w-full sm:w-52">
             <SelectValue placeholder="Filtrar por reunião" />
           </SelectTrigger>
           <SelectContent>
@@ -281,8 +281,68 @@ function AlunosPageInner() {
         <span className="ml-auto text-sm text-muted-foreground">{filtered.length} resultado{filtered.length !== 1 ? 's' : ''}</span>
       </div>
 
-      {/* Students table */}
-      <Card>
+      {/* Mobile: cartões tocáveis */}
+      <div className="space-y-2.5 md:hidden">
+        {filtered.length === 0 ? (
+          <div className="rounded-xl border border-border/60 bg-white p-8 text-center">
+            <Search className="mx-auto h-10 w-10 text-muted-foreground/30" />
+            <p className="mt-3 font-medium">Nenhum aluno encontrado</p>
+            <p className="mt-1 text-sm text-muted-foreground">Ajuste os filtros ou limpe a busca.</p>
+            <Button variant="outline" size="sm" onClick={clearFilters} className="mt-3">Limpar filtros</Button>
+          </div>
+        ) : (
+          filtered.map((student) => {
+            const noNext = !student.next_meeting_at
+            const isDelayed = (student.days_since_last_meeting ?? 0) > 21
+            const tags = getStudentTags(student)
+            return (
+              <Link
+                key={student.id}
+                href={`/alunos/${student.id}`}
+                className={cn(
+                  'block rounded-xl border bg-white p-3.5 shadow-sm transition-colors hover:bg-muted/20',
+                  student.status === 'critico' ? 'border-red-200 bg-red-50/40' : 'border-border/50'
+                )}
+              >
+                <div className="flex items-start justify-between gap-2">
+                  <div className="min-w-0">
+                    <p className="truncate font-semibold text-foreground">{student.name}</p>
+                    <p className="truncate text-xs text-muted-foreground">{student.desired_specialty || '—'}</p>
+                  </div>
+                  <RiskScore score={student.risk_score} />
+                </div>
+                <div className="mt-2.5 flex flex-wrap items-center gap-1.5">
+                  <StudentStatusBadge status={student.status} />
+                  <StudyPhaseBadge phase={student.study_phase} />
+                  {tags.slice(0, 2).map(tag => <TagPill key={tag.label} tag={tag} />)}
+                </div>
+                <div className="mt-2.5 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted-foreground">
+                  {student.mentor?.name && (
+                    <span>{student.mentor.name.split(' ').slice(0, 2).join(' ')}</span>
+                  )}
+                  <span className="flex items-center gap-1">
+                    <Calendar className="h-3.5 w-3.5" />
+                    {student.next_meeting_at
+                      ? format(parseLocalDate(student.next_meeting_at), 'dd/MM/yy', { locale: ptBR })
+                      : <span className="font-medium text-red-500">Sem reunião</span>}
+                  </span>
+                </div>
+                <div className={cn(
+                  'mt-2.5 rounded-lg px-2 py-1 text-xs font-medium leading-snug',
+                  noNext || student.status === 'critico'
+                    ? 'bg-red-50 text-red-700'
+                    : isDelayed ? 'bg-yellow-50 text-yellow-700' : 'bg-emerald-50 text-emerald-700'
+                )}>
+                  {getRecommendedAction(student)}
+                </div>
+              </Link>
+            )
+          })
+        )}
+      </div>
+
+      {/* Desktop: tabela */}
+      <Card className="hidden md:block">
         <CardContent className="p-0">
           <div className="overflow-x-auto">
             <table className="w-full text-sm">

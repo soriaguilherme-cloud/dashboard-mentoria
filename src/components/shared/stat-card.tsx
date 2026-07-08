@@ -17,7 +17,7 @@ export function StatCard({ title, value, subtitle, icon: Icon, trend, variant = 
   return (
     <div
       className={cn(
-        'relative overflow-hidden rounded-2xl p-5',
+        'relative overflow-hidden rounded-2xl p-4 sm:p-5',
         isPrimary
           ? 'bg-gradient-to-br from-primary to-[#e05d10] shadow-lg shadow-primary/25'
           : 'bg-white border border-border/50 shadow-sm',
@@ -53,13 +53,13 @@ export function StatCard({ title, value, subtitle, icon: Icon, trend, variant = 
         </div>
 
         <p className={cn(
-          'text-3xl font-bold tracking-tight',
+          'text-2xl font-bold tracking-tight sm:text-3xl',
           isPrimary ? 'text-white' : 'text-foreground'
         )}>
           {value}
         </p>
 
-        <div className="flex items-center justify-between gap-2">
+        <div className="flex flex-col items-start gap-1.5 sm:flex-row sm:items-center sm:justify-between sm:gap-2">
           {subtitle && (
             <span className={cn(
               'text-xs',
@@ -70,7 +70,7 @@ export function StatCard({ title, value, subtitle, icon: Icon, trend, variant = 
           )}
           {trend && (
             <span className={cn(
-              'inline-flex items-center gap-0.5 rounded-full px-2 py-0.5 text-xs font-medium',
+              'inline-flex flex-shrink-0 items-center gap-0.5 rounded-full px-2 py-0.5 text-xs font-medium',
               trend.value > 0
                 ? 'bg-emerald-100 text-emerald-700'
                 : 'bg-red-100 text-red-600'

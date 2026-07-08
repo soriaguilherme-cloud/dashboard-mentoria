@@ -5,12 +5,14 @@ import { useAuth } from '@/lib/auth-context'
 import { roleDescription, roleLabel } from '@/lib/access-control'
 import Link from 'next/link'
 import { CommandMenu } from '@/components/layout/command-menu'
+import { MobileNav } from '@/components/layout/sidebar'
 
 export function TopBar({ unreadAlerts = 0 }: { unreadAlerts?: number }) {
   const { user } = useAuth()
 
   return (
-    <header className="flex h-16 flex-shrink-0 items-center gap-4 border-b border-border/40 bg-white px-6">
+    <header className="flex h-16 flex-shrink-0 items-center gap-2 border-b border-border/40 bg-white px-4 sm:gap-4 sm:px-6">
+      <MobileNav />
       <div className="w-64 max-w-[45vw]">
         <CommandMenu />
       </div>
