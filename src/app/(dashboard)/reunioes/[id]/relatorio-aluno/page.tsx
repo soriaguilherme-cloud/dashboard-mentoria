@@ -1,6 +1,6 @@
 'use client'
 
-import { use, useRef, useState } from 'react'
+import { use, useCallback, useEffect, useRef, useState } from 'react'
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
 import Image from 'next/image'
@@ -53,6 +53,7 @@ export default function RelatorioAlunoPage({ params }: { params: Promise<{ id: s
   const [sent, setSent] = useState(false)
   const [isExporting, setIsExporting] = useState(false)
   const reportRef = useRef<HTMLElement>(null)
+  const fitRef = useRef<HTMLDivElement>(null)
   const firstName = student.name.split(' ')[0]
   const meetingNumber = getMeetingNumber(meeting.id)
   const dateLabel = format(new Date(meeting.scheduled_at), 'dd/MM/yyyy', { locale: ptBR })
@@ -70,6 +71,44 @@ export default function RelatorioAlunoPage({ params }: { params: Promise<{ id: s
   const weekPlan = buildWeekPlan(record, prepCourse)
   const weeklySchedule = buildWeeklySchedule({ record, prepCourse })
 
+  // No mobile, escala o preview A4 para caber na largura da tela (só visual).
+  // O PDF continua sendo capturado em tamanho real (210mm) — ver exportReportPdf.
+  const applyFit = useCallback((forceFull = false) => {
+    const wrap = fitRef.current
+    const article = reportRef.current
+    if (!wrap || !article) return
+    const isMobile = typeof window !== 'undefined' && window.matchMedia('(max-width: 767px)').matches
+    if (forceFull || !isMobile) {
+      article.style.width = ''
+      article.style.transform = ''
+      article.style.transformOrigin = ''
+      wrap.style.height = ''
+      return
+    }
+    // Largura real de uma folha A4 (210mm @ 96dpi). Forçamos o artigo a esse
+    // tamanho e escalamos para caber na largura disponível — assim o preview
+    // é uma miniatura fiel do PDF, sem reflow.
+    const A4_PX = 793.7
+    article.style.width = `${A4_PX}px`
+    article.style.transformOrigin = 'top left'
+    const scale = Math.min(1, wrap.clientWidth / A4_PX)
+    article.style.transform = `scale(${scale})`
+    wrap.style.height = `${article.offsetHeight * scale}px`
+  }, [])
+
+  useEffect(() => {
+    applyFit()
+    const t = setTimeout(applyFit, 400) // recalcula após fontes/imagens
+    const onResize = () => applyFit()
+    window.addEventListener('resize', onResize)
+    window.addEventListener('orientationchange', onResize)
+    return () => {
+      clearTimeout(t)
+      window.removeEventListener('resize', onResize)
+      window.removeEventListener('orientationchange', onResize)
+    }
+  }, [applyFit])
+
   async function copyReport() {
     await navigator.clipboard.writeText(reportText)
     setCopied(true)
@@ -80,10 +119,12 @@ export default function RelatorioAlunoPage({ params }: { params: Promise<{ id: s
     if (!reportRef.current) return
 
     setIsExporting(true)
+    applyFit(true) // remove a escala mobile para capturar em tamanho real
     try {
       await exportVisualPdf(reportRef.current, { filename: fileName })
     } finally {
       setIsExporting(false)
+      applyFit() // restaura a escala mobile
     }
   }
 
@@ -141,12 +182,12 @@ export default function RelatorioAlunoPage({ params }: { params: Promise<{ id: s
         }
       `}</style>
 
-      <div className="no-print flex items-center justify-between gap-3">
+      <div className="no-print flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <Link href={`/reunioes/${meeting.id}`} className="inline-flex items-center gap-2 text-sm font-medium text-muted-foreground hover:text-foreground">
           <ArrowLeft className="h-4 w-4" />
           Voltar para reunião
         </Link>
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
           <a href={whatsappHref} target="_blank" rel="noreferrer">
             <Button variant="outline" className="gap-2" onClick={() => setSent(true)}>
               <MessageCircle className="h-4 w-4" />
@@ -183,6 +224,11 @@ export default function RelatorioAlunoPage({ params }: { params: Promise<{ id: s
         </div>
       </div>
 
+      <p className="no-print text-center text-xs text-muted-foreground md:hidden">
+        Pré-visualização em escala reduzida. O PDF é gerado em tamanho real (A4).
+      </p>
+
+      <div ref={fitRef} className="w-full overflow-hidden md:overflow-visible">
       <article ref={reportRef} className="student-guide-document flex flex-col items-center gap-5">
         <GuidePage footer={`Mentoria Residência Afya · ${mentor.name} · Reunião ${meetingNumber} — ${dateLabel}`}>
           <GuideHeader
@@ -463,6 +509,7 @@ export default function RelatorioAlunoPage({ params }: { params: Promise<{ id: s
           </div>
         </GuidePage>
       </article>
+      </div>
     </div>
   )
 }
