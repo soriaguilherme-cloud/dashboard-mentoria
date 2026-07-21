@@ -2,7 +2,7 @@ import type { MetadataRoute } from 'next'
 
 export default function manifest(): MetadataRoute.Manifest {
   return {
-    name: 'Mentoria Residência Afya',
+    name: 'Mentoria Residência',
     short_name: 'Mentoria',
     description: 'Plataforma interna de inteligência operacional da Mentoria Residência',
     start_url: '/',

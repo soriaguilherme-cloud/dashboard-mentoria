@@ -97,7 +97,7 @@ export default function LoginPage() {
           <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-white/20 backdrop-blur-sm">
             <Stethoscope className="h-6 w-6 text-white" />
           </div>
-          <h1 className="mt-8 text-3xl font-bold leading-tight">Mentoria<br />Residência Afya</h1>
+          <h1 className="mt-8 text-3xl font-bold leading-tight">Mentoria<br />Residência</h1>
           <p className="mt-3 text-white/70 text-sm leading-relaxed">
             Plataforma interna de inteligência operacional para acompanhamento de alunos em preparação para residência médica.
           </p>
@@ -111,7 +111,7 @@ export default function LoginPage() {
             <p className="text-sm font-semibold">3 mentores ativos</p>
             <p className="text-xs text-white/60 mt-0.5">Reuniões semanais individuais</p>
           </div>
-          <p className="text-xs text-white/40 pt-2">© 2025 Afya · Todos os direitos reservados</p>
+          <p className="text-xs text-white/40 pt-2">© 2025 · Todos os direitos reservados</p>
         </div>
       </div>
 

@@ -49,7 +49,7 @@ class PdfBuilder {
     this.pages.push({ commands: [] })
     this.y = pageHeight - marginY
 
-    this.text('Mentoria Residencia Afya', marginX, this.y, 10, 'primary', true)
+    this.text('Mentoria Residencia', marginX, this.y, 10, 'primary', true)
     this.text(`Pagina ${this.pageNumber}`, pageWidth - marginX - 44, this.y, 9, 'muted')
     this.y -= 18
     this.line(marginX, this.y, pageWidth - marginX, this.y, 'primary', 0.8)

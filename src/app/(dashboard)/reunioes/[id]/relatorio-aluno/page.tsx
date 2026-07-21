@@ -230,7 +230,7 @@ export default function RelatorioAlunoPage({ params }: { params: Promise<{ id: s
 
       <div ref={fitRef} className="w-full overflow-hidden md:overflow-visible">
       <article ref={reportRef} className="student-guide-document flex flex-col items-center gap-5">
-        <GuidePage footer={`Mentoria Residência Afya · ${mentor.name} · Reunião ${meetingNumber} — ${dateLabel}`}>
+        <GuidePage footer={`Mentoria Residência · ${mentor.name} · Reunião ${meetingNumber} — ${dateLabel}`}>
           <GuideHeader
             kicker={`Mentoria individual · Reunião ${meetingNumber}`}
             rightTop={mentor.name}
@@ -239,7 +239,7 @@ export default function RelatorioAlunoPage({ params }: { params: Promise<{ id: s
 
           <div className="mt-12">
             <div className="mb-10 h-[44px] w-[225px]">
-              <Image src="/mentoria-logo.png" alt="Mentoria Residência Afya" width={225} height={44} priority />
+              <Image src="/mentoria-logo.png" alt="Mentoria Residência" width={225} height={44} priority />
             </div>
             <p className="text-xs font-bold uppercase tracking-[0.22em] text-primary">{reportVariant.label}</p>
             <h1 className="mt-4 text-[42px] font-extrabold leading-tight tracking-tight text-foreground">Guia de Estudos</h1>
@@ -286,7 +286,7 @@ export default function RelatorioAlunoPage({ params }: { params: Promise<{ id: s
           </GuideSection>
         </GuidePage>
 
-        <GuidePage footer={`Mentoria Residência Afya · ${mentor.name} · Reunião ${meetingNumber} — ${dateLabel}`}>
+        <GuidePage footer={`Mentoria Residência · ${mentor.name} · Reunião ${meetingNumber} — ${dateLabel}`}>
           <GuideHeader
             kicker="Plataforma e registros"
             rightTop={student.name}
@@ -331,7 +331,7 @@ export default function RelatorioAlunoPage({ params }: { params: Promise<{ id: s
           </GuideSection>
         </GuidePage>
 
-        <GuidePage footer={`Mentoria Residência Afya · ${mentor.name} · Reunião ${meetingNumber} — ${dateLabel}`}>
+        <GuidePage footer={`Mentoria Residência · ${mentor.name} · Reunião ${meetingNumber} — ${dateLabel}`}>
           <GuideHeader
             kicker="Método de estudo"
             rightTop={student.name}
@@ -402,7 +402,7 @@ export default function RelatorioAlunoPage({ params }: { params: Promise<{ id: s
           </div>
         </GuidePage>
 
-        <GuidePage footer={`Mentoria Residência Afya · ${mentor.name} · Reunião ${meetingNumber} — ${dateLabel}`}>
+        <GuidePage footer={`Mentoria Residência · ${mentor.name} · Reunião ${meetingNumber} — ${dateLabel}`}>
           <GuideHeader
             kicker="Dúvidas e ajustes"
             rightTop={student.name}
@@ -429,7 +429,7 @@ export default function RelatorioAlunoPage({ params }: { params: Promise<{ id: s
           </GuideSection>
         </GuidePage>
 
-        <GuidePage footer={`Mentoria Residência Afya · ${mentor.name} · Reunião ${meetingNumber} — ${dateLabel}`}>
+        <GuidePage footer={`Mentoria Residência · ${mentor.name} · Reunião ${meetingNumber} — ${dateLabel}`}>
           <GuideHeader
             kicker="Metas"
             rightTop={student.name}
@@ -466,7 +466,7 @@ export default function RelatorioAlunoPage({ params }: { params: Promise<{ id: s
           </div>
         </GuidePage>
 
-        <GuidePage footer={`Mentoria Residência Afya · ${mentor.name} · Reunião ${meetingNumber} — ${dateLabel}`}>
+        <GuidePage footer={`Mentoria Residência · ${mentor.name} · Reunião ${meetingNumber} — ${dateLabel}`}>
           <GuideHeader
             kicker="Combinados"
             rightTop={student.name}
@@ -505,7 +505,7 @@ export default function RelatorioAlunoPage({ params }: { params: Promise<{ id: s
             <p className="text-lg font-bold leading-relaxed text-[#55331F]">
               Organização e constância vencem semanas imperfeitas. Se algo sair do plano, a gente ajusta rápido e segue. Pode chamar sempre que precisar.
             </p>
-            <p className="mt-5 text-sm font-semibold text-[#55331F]">{mentor.name} · Mentoria Residência Afya</p>
+            <p className="mt-5 text-sm font-semibold text-[#55331F]">{mentor.name} · Mentoria Residência</p>
           </div>
         </GuidePage>
       </article>

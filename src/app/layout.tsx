@@ -3,7 +3,7 @@ import "./globals.css";
 import { AuthProvider } from '@/lib/auth-context'
 
 export const metadata: Metadata = {
-  title: "Mentoria Residência Afya",
+  title: "Mentoria Residência",
   description: "Plataforma interna de inteligência operacional da Mentoria Residência",
   applicationName: "Mentoria",
   manifest: "/manifest.webmanifest",

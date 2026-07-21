@@ -13,17 +13,17 @@ export const mockPrepCourses: PrepCourse[] = [
 
 export const mockProfiles: Profile[] = [
   // Coordenação
-  { id: 'u1', user_id: 'auth1', name: 'Dra. Ana Lima', email: 'ana.lima@afya.com.br', role: 'coordenacao', is_active: true, created_at: '2024-01-01', updated_at: '2024-01-01' },
+  { id: 'u1', user_id: 'auth1', name: 'Dra. Ana Lima', email: 'ana.lima@mentoria.com.br', role: 'coordenacao', is_active: true, created_at: '2024-01-01', updated_at: '2024-01-01' },
   // Supervisores
-  { id: 'u2', user_id: 'auth2', name: 'Dr. Carlos Menezes', email: 'carlos.menezes@afya.com.br', role: 'supervisor', is_active: true, created_at: '2024-01-01', updated_at: '2024-01-01' },
-  { id: 'u3', user_id: 'auth3', name: 'Dra. Fernanda Souza', email: 'fernanda.souza@afya.com.br', role: 'supervisor', is_active: true, created_at: '2024-01-01', updated_at: '2024-01-01' },
+  { id: 'u2', user_id: 'auth2', name: 'Dr. Carlos Menezes', email: 'carlos.menezes@mentoria.com.br', role: 'supervisor', is_active: true, created_at: '2024-01-01', updated_at: '2024-01-01' },
+  { id: 'u3', user_id: 'auth3', name: 'Dra. Fernanda Souza', email: 'fernanda.souza@mentoria.com.br', role: 'supervisor', is_active: true, created_at: '2024-01-01', updated_at: '2024-01-01' },
   // Mentores
-  { id: 'u4', user_id: 'auth4', name: 'Dr. Ricardo Oliveira', email: 'ricardo.oliveira@afya.com.br', role: 'mentor', is_active: true, created_at: '2024-01-01', updated_at: '2024-01-01' },
-  { id: 'u5', user_id: 'auth5', name: 'Dra. Patrícia Costa', email: 'patricia.costa@afya.com.br', role: 'mentor', is_active: true, created_at: '2024-01-01', updated_at: '2024-01-01' },
-  { id: 'u6', user_id: 'auth6', name: 'Dr. Thiago Martins', email: 'thiago.martins@afya.com.br', role: 'mentor', is_active: true, created_at: '2024-01-01', updated_at: '2024-01-01' },
+  { id: 'u4', user_id: 'auth4', name: 'Dr. Ricardo Oliveira', email: 'ricardo.oliveira@mentoria.com.br', role: 'mentor', is_active: true, created_at: '2024-01-01', updated_at: '2024-01-01' },
+  { id: 'u5', user_id: 'auth5', name: 'Dra. Patrícia Costa', email: 'patricia.costa@mentoria.com.br', role: 'mentor', is_active: true, created_at: '2024-01-01', updated_at: '2024-01-01' },
+  { id: 'u6', user_id: 'auth6', name: 'Dr. Thiago Martins', email: 'thiago.martins@mentoria.com.br', role: 'mentor', is_active: true, created_at: '2024-01-01', updated_at: '2024-01-01' },
   // Orientadores
-  { id: 'u7', user_id: 'auth7', name: 'Profa. Juliana Ramos', email: 'juliana.ramos@afya.com.br', role: 'orientador', is_active: true, created_at: '2024-01-01', updated_at: '2024-01-01' },
-  { id: 'u8', user_id: 'auth8', name: 'Prof. Eduardo Silva', email: 'eduardo.silva@afya.com.br', role: 'orientador', is_active: true, created_at: '2024-01-01', updated_at: '2024-01-01' },
+  { id: 'u7', user_id: 'auth7', name: 'Profa. Juliana Ramos', email: 'juliana.ramos@mentoria.com.br', role: 'orientador', is_active: true, created_at: '2024-01-01', updated_at: '2024-01-01' },
+  { id: 'u8', user_id: 'auth8', name: 'Prof. Eduardo Silva', email: 'eduardo.silva@mentoria.com.br', role: 'orientador', is_active: true, created_at: '2024-01-01', updated_at: '2024-01-01' },
 ]
 
 export const mockStudents: Student[] = [
